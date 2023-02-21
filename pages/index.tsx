@@ -11,7 +11,11 @@ import Github from "../components/GitHub";
 import Header from "../components/Header";
 import LoadingDots from "../components/LoadingDots";
 import ResizablePanel from "../components/ResizablePanel";
-import { promptSections, promptContinue } from "../prompts";
+import {
+  promptSections,
+  promptContinue,
+  promptCreateNewSection,
+} from "../prompts";
 
 const Home: NextPage = () => {
   const [loading, setLoading] = useState(false);
@@ -79,6 +83,54 @@ const Home: NextPage = () => {
 
       // do differently if we want live update
     }
+  };
+
+  const createNewSection = async (e: any) => {
+    const prompt = promptCreateNewSection(wikipediaPage, generatedSections);
+    e.preventDefault();
+
+    setLoading(true);
+    console.log("prompt", prompt);
+    const response = await fetch("/api/generate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        prompt,
+      }),
+    });
+
+    if (!response.ok) {
+      // handle this error properly
+
+      throw new Error(response.statusText);
+    }
+
+    // This data is a ReadableStream
+    const data = response.body;
+    if (!data) {
+      return;
+    }
+    const reader = data.getReader();
+    const decoder = new TextDecoder();
+
+    let done = false;
+    let resultData = "";
+    while (!done) {
+      const { value, done: doneReading } = await reader.read();
+      done = doneReading;
+      const chunkValue = decoder.decode(value);
+      resultData += chunkValue;
+
+      // do differently if we want live update
+    }
+
+    // convert resultData as json object
+    const newSection = JSON.parse(resultData);
+    setgeneratedSections((prev) => [...prev, newSection]);
+
+    setLoading(false);
   };
 
   const generatewikipediaPage = async (e: any) => {
@@ -211,7 +263,7 @@ const Home: NextPage = () => {
         <ResizablePanel>
           <AnimatePresence mode="wait">
             <motion.div className="space-y-10 my-10">
-              {generatedSections && (
+              {generatedSections.length && (
                 <>
                   <div className="space-y-8 flex flex-col items-center justify-center max-w-xl mx-auto">
                     {generatedSections.map((generatedSection, sectionIndex) => {
@@ -237,6 +289,13 @@ const Home: NextPage = () => {
                       );
                     })}
                   </div>
+
+                  <button
+                    className="bg-black rounded-xl text-white font-medium px-4 py-2 sm:mt-10 mt-8 hover:bg-black/80 w-full"
+                    onClick={(e) => createNewSection(e)}
+                  >
+                    Add a new section &rarr;
+                  </button>
                 </>
               )}
             </motion.div>

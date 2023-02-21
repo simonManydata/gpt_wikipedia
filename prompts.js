@@ -8,6 +8,10 @@ export const getStylePrompt = (style) => {
   }
 };
 
+export const promptCreateNewSection = (pageName, currentSections) => {
+  let currentSectionsNames = currentSections.map((section) => section.header);
+  return `Here are the sections names created for the page ${pageName}:\n${currentSectionsNames}. Return a new section with a description. Result is in a json format like this: \{"header": "Event A ", "description": "This event happens/describe ..."}\}`;
+};
 export const promptSections = (pageName, style) => {
   return `Can you return the 3 sections related to this subject: '${pageName}'
   ${getStylePrompt(
