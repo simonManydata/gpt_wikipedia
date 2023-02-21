@@ -20,11 +20,11 @@ const handler = async (req: Request): Promise<Response> => {
   const payload: OpenAIStreamPayload = {
     model: "text-davinci-003",
     prompt,
-    temperature: 0.7,
+    temperature: 0,
     top_p: 1,
-    frequency_penalty: 0,
+    frequency_penalty: 1,
     presence_penalty: 0,
-    max_tokens: 200,
+    max_tokens: 512,
     stream: true,
     n: 1,
   };
